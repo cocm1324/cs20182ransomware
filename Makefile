@@ -1,6 +1,6 @@
 CC=gcc
 TARGET=a.out
-OBJS=main.o des.o
+OBJS=main.o des.o util.o
 
 all: $(TARGET)
 
