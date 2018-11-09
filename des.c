@@ -11,50 +11,7 @@
 *
 */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-
-#define BLOCK_SIZE 64
-#define PART_SIZE 32
-#define EXPANSION_SIZE 48
-#define KEY_SIZE 56
-#define ROUND 16
-
-void des_encrypt(int*, int*);               //des로 암호화. (키, 평문)
-void des_decrypt(int*, int*);               //des로 복호화. (키, 암호문)
-
-void pbox(int*, int*, int);
-void e_pbox(int*, int*, int*);
-void whitner(int*, int*);
-void round_sbox(int*, int*, int[8][16][4]);
-void s_pbox(int*, int*);
-int** key_gen(int*, int*, int*, int);
-
-void print_hex(int*, int); 
-void print_bit(int*, int);                  //int 배열을 출력함. (배열 포인터, 배열 길이) 
-int* hex_to_bitwise(int*, int);
-int* bitwise_to_hex(int*, int);
-int* array_init(int);
-void bitwise_shift_left(int*, int, int);
-void bitwise_xor(int*, int*, int);
-void array_shallow_copy(int*, int*, int);   //int 배열을 복사함. (붙여넣을 배열, 복사할 배열, 배열 길이)
-void sys_log(char*);                        //시스템 로그를 남김. (시스템 메세지)
-int* string_to_hex(char*, int);
-
-int main(){
-    int* key = hex_to_bitwise(string_to_hex("AABB09182736CCDD", BLOCK_SIZE / 4), BLOCK_SIZE / 4);
-    int* plaintext = hex_to_bitwise(string_to_hex("123456ABCD132536", BLOCK_SIZE / 4), BLOCK_SIZE/4);
-    int* ciphertext = array_init(BLOCK_SIZE);
-
-    des_encrypt(key, plaintext);
-    array_shallow_copy(ciphertext, plaintext, BLOCK_SIZE);
-    print_bit(plaintext, BLOCK_SIZE);
-    des_decrypt(key, ciphertext);
-    print_bit(ciphertext, BLOCK_SIZE);
-    
-    return 0;
-}
+#include "ransomware.h"
 
 
 void des_encrypt(int* key_param, int* plaintext_param){
@@ -342,7 +299,6 @@ void des_encrypt(int* key_param, int* plaintext_param){
 
     return;
 }
-
 void des_decrypt(int* key_param, int* ciphertext_param){
     //des static value
     int parity_drop[56] = {
@@ -657,7 +613,6 @@ void pbox(int* bitwise_value, int* table, int flag){
 
     return;
 }
-
 //round(1) expansion permutation box
 void e_pbox(int* expansion, int* bitwise_r_part, int* table){
     for(int i = 0; i < EXPANSION_SIZE; i++){
@@ -666,14 +621,12 @@ void e_pbox(int* expansion, int* bitwise_r_part, int* table){
 
     return;
 }
-
 //round(2) whitner(xor)
 void whitner(int* expansion, int* round_key){
     bitwise_xor(expansion, round_key, EXPANSION_SIZE);
 
     return;
 }
-
 //round(3) s box
 void round_sbox(int* expansion, int* r_part, int sbox[8][16][4]){
     int row = 0;
@@ -717,7 +670,6 @@ void round_sbox(int* expansion, int* r_part, int sbox[8][16][4]){
 
     return;
 }
-
 //round(4) straight p box
 void s_pbox(int* r_part, int* straight_pbox){
     int* temp = array_init(BLOCK_SIZE / 2);
@@ -735,7 +687,6 @@ void s_pbox(int* r_part, int* straight_pbox){
 
     return;
 }
-
 //key generator
 int** key_gen(int* bitwise_key, int* parity_drop, int* compression_table, int flag){
     int* temp = array_init(KEY_SIZE);
@@ -825,7 +776,6 @@ void print_hex(int* hex_value, int hex_size){
 
     return;
 }
-
 void print_bit(int* bitwise_value, int bit_size){
     int* hex_value = bitwise_to_hex(bitwise_value, bit_size);
     print_hex(hex_value, bit_size / 4);
@@ -835,7 +785,6 @@ void print_bit(int* bitwise_value, int bit_size){
 
     return;
 }
-
 int* hex_to_bitwise(int* hex_input, int hex_size){
     int* ret_val = (int*)malloc(sizeof(int) * (hex_size * 4));
     int* hex_value = array_init(hex_size);
@@ -878,7 +827,6 @@ int* hex_to_bitwise(int* hex_input, int hex_size){
     }
     return ret_val;
 }
-
 int* bitwise_to_hex(int* bitwise_value, int bit_size){
     int* ret_val = (int*)malloc(sizeof(int) * bit_size / 4);
     for(int i = 0; i < bit_size / 4; i++){
@@ -887,7 +835,6 @@ int* bitwise_to_hex(int* bitwise_value, int bit_size){
 
     return ret_val;
 }
-
 int* array_init(int size){
     int* array = (int*)malloc(sizeof(int) * size);
     for(int i = 0; i < size; i++){
@@ -896,7 +843,6 @@ int* array_init(int size){
 
     return array;
 }
-
 void bitwise_shift_left(int* array, int array_size, int repeat){
     int temp = array[0];
 
@@ -912,7 +858,6 @@ void bitwise_shift_left(int* array, int array_size, int repeat){
         bitwise_shift_left(array, array_size, repeat - 1);
     }
 }
-
 void bitwise_xor(int* bit_a, int* bit_b, int size){
     for(int i = 0; i < size; i++){
         bit_a[i] = bit_a[i]^bit_b[i];
@@ -920,7 +865,6 @@ void bitwise_xor(int* bit_a, int* bit_b, int size){
 
     return;
 }
-
 void array_shallow_copy(int* array1, int* array2, int size){
     for(int i = 0; i < size; i++){
         array1[i] = array2[i];
@@ -928,13 +872,11 @@ void array_shallow_copy(int* array1, int* array2, int size){
 
     return;
 }
-
 void sys_log(char* message){
     printf("System log: %s\n", message);
 
     return;
 }
-
 int* string_to_hex(char* input, int size){
     int* ret_val = (int*)malloc(sizeof(int) * size);
 
