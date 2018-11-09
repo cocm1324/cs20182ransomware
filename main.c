@@ -32,7 +32,7 @@ int main(){
     FILE* fp;
     char* buffer;
     long filelen;
-    int temp = 0;
+    char temp = 0;
 
     fileptr = fopen("jackson.jpg", "rb");  // Open the file in binary mode
     fseek(fileptr, 0, SEEK_END);          // Jump to the end of the file
@@ -42,15 +42,24 @@ int main(){
     buffer = (char *)malloc((filelen+1)*sizeof(char)); // Enough memory for file + \0
     fread(buffer, filelen, 1, fileptr); // Read in the entire file
     
-    printf("1: ");
-    for(int i = 0; i < 1000; i++){
-        temp = (int)buffer[i];
-        printf("%4d ",temp);
-        if(i % 10 == 0){
-            printf("\n%d: ", (i / 10) + 2);
+    printf("  1: ");
+    for(int i = 0; i < 1024; i++){
+        temp = buffer[i];
+        for( int j = 7; j >= 0; j-- ) {
+            printf( "%d", ( temp >> j ) & 1 ? 1 : 0 );
+            if(j == 4){
+                printf(" ");
+            }
+        }
+        printf(" ");
+
+        if(i % 8 == 0){
+            printf("\n%3d: ", (i / 10) + 2);
         }
     }
     
+
+
     fclose(fileptr); // Close the file
 
     fp = fopen("jackson_modified.jpg", "wb");
