@@ -13,7 +13,7 @@
 
 #include "des.h"
 #include "util.h"
-#include "cbc.h"
+#include "ecb.h"
 
 int main(){
     /*
@@ -31,6 +31,7 @@ int main(){
     FILE* fileptr;
     FILE* fp;
     char* buffer;
+    int* int_buffer;
     long filelen;
     char temp = 0;
 
@@ -39,36 +40,40 @@ int main(){
     filelen = ftell(fileptr);             // Get the current byte offset in the file
     rewind(fileptr);                      // Jump back to the beginning of the file
 
-    buffer = (char *)malloc((filelen+1)*sizeof(char)); // Enough memory for file + \0
+    buffer = (char *)malloc((filelen+1) * sizeof(char)); // Enough memory for file + \0
     fread(buffer, filelen, 1, fileptr); // Read in the entire file
-    
-    printf("  1: ");
-    for(int i = 0; i < 1024; i++){
-        temp = buffer[i];
-        for( int j = 7; j >= 0; j-- ) {
-            printf( "%d", ( temp >> j ) & 1 ? 1 : 0 );
-            if(j == 4){
-                printf(" ");
-            }
-        }
-        printf(" ");
+    int_buffer = (int*)malloc((filelen+1) * 8 * sizeof(int));
 
-        if(i % 8 == 0){
-            printf("\n%3d: ", (i / 10) + 2);
+    for(int i = 0; i < filelen + 1; i++){
+        temp = buffer[i];
+        //printf("temp: %d\n", temp);
+        for( int j = 7; j >= 0; j--) {
+            //printf("%d: %d\n", 8-j, ( temp >> j ) & 1 ? 1 : 0);
+            int_buffer[i * 8 + 7 - j] = ( temp >> j ) & 1 ? 1 : 0;
         }
     }
     
-
+    for(int i = 1; i <= 1024 * 8; i++){
+        printf("%d",int_buffer[i]);
+        if(i % 64 == 0){
+            printf("\n");
+        }
+        else if(i % 8 == 0){
+            printf(" ");
+        }
+    }
 
     fclose(fileptr); // Close the file
 
-    fp = fopen("jackson_modified.jpg", "wb");
+    fp = fopen("jackson.jpg.locked", "wb");
     fwrite(buffer, filelen, 1, fp);
 
     fclose(fp);
 
     free(buffer);
-    buffer=NULL;
+    buffer = NULL;
+    free(int_buffer);
+    int_buffer = NULL;
 
     printf("\nfile length: %ld\n", filelen);
 
