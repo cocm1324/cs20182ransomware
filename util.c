@@ -13,7 +13,7 @@ void print_hex(int* hex_value, int hex_size){
 void print_bit(int* bitwise_value, int bit_size){
     int* hex_value = bitwise_to_hex(bitwise_value, bit_size);
     print_hex(hex_value, bit_size / 4);
-    
+
     free(hex_value);
     hex_value = NULL;
 
@@ -122,4 +122,29 @@ int* string_to_hex(char* input, int size){
     }
 
     return ret_val;
+}
+
+
+int* ByteToInt(char *buffer, int size){
+  int* intarray = (int*)malloc(sizeof(int) * (size) * 4);
+
+  for(int i = 0, j = 0; i < size * 4; i++){
+    if( (i % 4) == 3){
+      intarray[i] = buffer[j] - '0';
+      j++;
+    }else      intarray[i] = 0;
+
+  }
+
+  return intarray;
+}
+
+char* InttoByte(int* buffer, int size){
+  char* bytearray = (char*)malloc(sizeof(char) * size/4);
+
+  for(int i = 0; i < size/4 ; i++){
+      bytearray[i] = buffer[(i+1)*4 - 1] + '0';
+  }
+
+  return bytearray;
 }
