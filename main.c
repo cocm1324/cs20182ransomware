@@ -31,18 +31,25 @@ int main(){
     FILE* fileptr;
     FILE* fp;
     char* buffer;
+    
+    char* encap = NULL;
+    char* decap = NULL;
+
+    int encap_size_val, decap_size_val;
+
     int* int_buffer;
     long filelen;
     char temp = 0;
+    
+    fileptr = fopen("jackson.jpg", "rb");                   // Open the file in binary mode
+    fseek(fileptr, 0, SEEK_END);                            // Jump to the end of the file
+    filelen = ftell(fileptr);                               // Get the current byte offset in the file
+    rewind(fileptr);                                        // Jump back to the beginning of the file
 
-    fileptr = fopen("jackson.jpg", "rb");  // Open the file in binary mode
-    fseek(fileptr, 0, SEEK_END);          // Jump to the end of the file
-    filelen = ftell(fileptr);             // Get the current byte offset in the file
-    rewind(fileptr);                      // Jump back to the beginning of the file
-
-    buffer = (char *)malloc((filelen+1) * sizeof(char)); // Enough memory for file + \0
-    fread(buffer, filelen, 1, fileptr); // Read in the entire file
+    buffer = (char *)malloc((filelen+1) * sizeof(char));    // Enough memory for file + \0
     int_buffer = (int*)malloc((filelen+1) * 8 * sizeof(int));
+
+    fread(buffer, filelen, 1, fileptr); 
 
     for(int i = 0; i < filelen + 1; i++){
         temp = buffer[i];
@@ -52,23 +59,60 @@ int main(){
             int_buffer[i * 8 + 7 - j] = ( temp >> j ) & 1 ? 1 : 0;
         }
     }
-    
-    for(int i = 1; i <= 1024 * 8; i++){
-        printf("%d",int_buffer[i]);
-        if(i % 64 == 0){
+
+    for(int i = 0; i < 64; i++){
+        printf("%3d ",buffer[i]);
+        if(i % 8 == 7){
             printf("\n");
         }
-        else if(i % 8 == 0){
+    }
+
+    printf("\n");
+    
+    for(int i = 0; i < 64 * 8; i++){
+        printf("%d",int_buffer[i]);
+        if(i % 64 == 63){
+            printf("\n");
+        }
+        else if(i % 8 == 7){
             printf(" ");
         }
     }
 
-    fclose(fileptr); // Close the file
 
-    fp = fopen("jackson.jpg.locked", "wb");
+    fclose(fileptr); // Close the file
+    
+    /*
+    fp = fopen("sample.docx.locked", "wb");
     fwrite(buffer, filelen, 1, fp);
 
     fclose(fp);
+
+    */
+    
+
+    encap = encapsulate_des_compatable_size(buffer, filelen + 1);
+    encap_size_val = encap_size(buffer, filelen + 1);
+
+    for(int i = 0; i < encap_size_val; i++){
+        printf("%5d ", encap[i]);
+        if(i % 10 == 9){
+            printf("\n");
+        }
+    }
+
+    decap = decapsulate_des_compatable_size(encap);
+    decap_size_val = decap_size(encap);
+
+    printf("\n");
+
+    for(int i = 0; i < decap_size_val; i++){
+        //printf("%5d ", decap[i]);
+        if(i % 10 == 9){
+        //    printf("\n");
+        }
+    }
+
 
     free(buffer);
     buffer = NULL;

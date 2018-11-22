@@ -148,3 +148,62 @@ char* InttoByte(int* buffer, int size){
 
   return bytearray;
 }
+
+char* char_array_init(int size){
+    char* array = (char*)malloc(sizeof(char) * size);
+    for(int i = 0; i < size; i++){
+        array[i] = 0;
+    }
+
+    return array;
+}
+
+void char_array_shallow_copy(char* array1, char* array2, int base1, int base2, int size){
+    for(int i = 0; i < size; i++){
+        array1[i + base1] = array2[i + base2];
+    }
+
+    return;
+}
+
+char* encapsulate_des_compatable_size(char* buffer, int size){
+    int padding_size = 8 - ((size + ENCAP_HEADER_SIZE) % 8);
+    int record_size = encap_size(buffer, size);
+    char* record = char_array_init(record_size);
+    char* record_header = char_array_init(ENCAP_HEADER_SIZE);
+
+    record_header[0] = (((size / CHAR_SIZE) / CHAR_SIZE) / CHAR_SIZE) - 128;
+    record_header[1] = ((size / CHAR_SIZE) / CHAR_SIZE) - 128;
+    record_header[2] = (size / CHAR_SIZE) - 128;
+    record_header[3] = (size % CHAR_SIZE) - 128;
+
+    char_array_shallow_copy(record, record_header, 0, 0, ENCAP_HEADER_SIZE);
+    char_array_shallow_copy(record, buffer, ENCAP_HEADER_SIZE, 0, size);
+    for(int i = ENCAP_HEADER_SIZE + size; i < ENCAP_HEADER_SIZE + size + padding_size; i++){
+        record[i] = 0;
+    }
+
+    return record;
+}
+
+int encap_size(char* buffer, int size){
+    int padding_size = 8 - ((size + ENCAP_HEADER_SIZE) % 8);
+    int record_size = size + ENCAP_HEADER_SIZE + padding_size;
+
+    return record_size;
+}
+
+char* decapsulate_des_compatable_size(char* buffer){
+    int size = decap_size(buffer);
+    char* record = char_array_init(size);
+
+    char_array_shallow_copy(record, buffer, 0, ENCAP_HEADER_SIZE, size);
+
+    return record;
+}
+
+int decap_size(char* buffer){
+    int size = (buffer[0]+128)*CHAR_SIZE*CHAR_SIZE*CHAR_SIZE + (buffer[1]+128)*CHAR_SIZE*CHAR_SIZE + (buffer[2]+128)*CHAR_SIZE + (buffer[3]+128);
+
+    return size;
+}
