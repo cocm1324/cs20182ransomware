@@ -1,6 +1,7 @@
+
 /*
 * File Name: main.c
-* Description: 
+* Description:
 * Made by: Gongtuigigi (Jaeeun Cho)
 * Student ID: 21300733
 * Email: cocm1324@gmail.com
@@ -31,7 +32,7 @@ int main(){
     FILE* fileptr;
     FILE* fp;
     char* buffer;
-    
+
     char* encap = NULL;
     char* decap = NULL;
 
@@ -40,8 +41,30 @@ int main(){
     int* int_buffer;
     long filelen;
     char temp = 0;
-    
-    fileptr = fopen("jackson.jpg", "rb");                   // Open the file in binary mode
+
+
+    struct _finddata_t fd;
+    long* handle;
+    int result = 1;
+    char* file;
+    handle = _findfirst(".\\*.*", &fd); // Set path
+    // handle = _findfirst("C:\\Users\\kwonda\\Desktop\\18_2\\*.*", &fd); // path 예시
+
+    if (handle == -1)
+    {
+        printf("There were no files.\n");
+        return;
+    }
+
+    int NumOfFile = 0;
+
+    while (result != -1)
+    {
+      char* fileName= fd.name;
+
+    if( NumOfFile > 1){
+    printf("%s \n", fileName);
+    fileptr = fopen(fileName, "rb");                   // Open the file in binary mode
     fseek(fileptr, 0, SEEK_END);                            // Jump to the end of the file
     filelen = ftell(fileptr);                               // Get the current byte offset in the file
     rewind(fileptr);                                        // Jump back to the beginning of the file
@@ -49,7 +72,7 @@ int main(){
     buffer = (char *)malloc((filelen+1) * sizeof(char));    // Enough memory for file + \0
     int_buffer = (int*)malloc((filelen+1) * 8 * sizeof(int));
 
-    fread(buffer, filelen, 1, fileptr); 
+    fread(buffer, filelen, 1, fileptr);
 
     for(int i = 0; i < filelen + 1; i++){
         temp = buffer[i];
@@ -68,7 +91,7 @@ int main(){
     }
 
     printf("\n");
-    
+
     for(int i = 0; i < 64 * 8; i++){
         printf("%d",int_buffer[i]);
         if(i % 64 == 63){
@@ -81,7 +104,7 @@ int main(){
 
 
     fclose(fileptr); // Close the file
-    
+
     /*
     fp = fopen("sample.docx.locked", "wb");
     fwrite(buffer, filelen, 1, fp);
@@ -89,7 +112,7 @@ int main(){
     fclose(fp);
 
     */
-    
+
 
     encap = encapsulate_des_compatable_size(buffer, filelen + 1);
     encap_size_val = encap_size(buffer, filelen + 1);
@@ -120,6 +143,13 @@ int main(){
     int_buffer = NULL;
 
     printf("\nfile length: %ld\n", filelen);
+  }// finish 'If' of NumOfFile
+  result = _findnext(handle, &fd);
+  NumOfFile++;
+
+}//finish 'while'. No more files to read
+
+_findclose(handle);
 
     return 0;
 }
