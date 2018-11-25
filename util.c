@@ -263,3 +263,236 @@ int decap_size(char* buffer){
 
     return size;
 }
+
+
+//base64 int to char
+char* base64_encode(int* record, int size){
+    char* encoded = NULL;
+    char base64[] = {
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+        'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+        'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+        'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+        'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+        'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+        'w', 'x', 'y', 'z', '0', '1', '2', '3',
+        '4', '5', '6', '7', '8', '9', '+', '/'
+    };
+    int temp = 0;
+    int char_size = size / 24;
+    char_size = char_size * 4;
+
+    if(size % 24 == 0){
+        encoded = (char*)malloc(sizeof(char) * (char_size + 1));
+
+        for(int i = 0; i < char_size; i++){
+            temp = 0;
+            for(int j = 0; j < 6; j++){
+                temp += record[(i * 6) + j] * pow(2, 5-j);
+            }
+            encoded[i] = base64[temp];
+        }
+
+        encoded[char_size + 4] = '\0';
+    }
+    else if(size % 24 == 16){
+        encoded = (char*)malloc(sizeof(char) * char_size + 5);
+
+        for(int i = 0; i < char_size; i++){
+            temp = 0;
+            for(int j = 0; j < 6; j++){
+                temp += record[(i * 6) + j] * pow(2, 5-j);
+            }
+            encoded[i] = base64[temp];
+        }
+
+        temp = 0;
+        for(int i = 0; i < 6; i++){
+            temp += record[char_size * 6 + i] * pow(2, 5-i);
+        }
+        encoded[char_size] =  base64[temp];
+
+        temp = 0;
+        for(int i = 0; i < 2; i++){
+            temp += record[(char_size + 1) * 6 + i] * pow(2, 5-i);
+        }
+        encoded[char_size + 1] =  base64[temp];
+
+        encoded[char_size + 2] = '=';
+        encoded[char_size + 3] = '=';
+        encoded[char_size + 4] = '\0';
+    }
+    else if(size % 24 == 8){
+        encoded = (char*)malloc(sizeof(char) * char_size + 5);
+
+        for(int i = 0; i < char_size; i++){
+            temp = 0;
+            for(int j = 0; j < 6; j++){
+                temp += record[(i * 6) + j] * pow(2, 5-j);
+            }
+            encoded[i] = base64[temp];
+        }
+
+        temp = 0;
+        for(int i = 0; i < 6; i++){
+            temp += record[char_size * 6 + i] * pow(2, 5-i);
+        }
+        encoded[char_size] = base64[temp];
+
+        temp = 0;
+        for(int i = 0; i < 6; i++){
+            temp += record[(char_size + 1) * 6 + i] * pow(2, 5-i);
+        }
+        encoded[char_size + 1] = base64[temp];
+
+        temp = 0;
+        for(int i = 0; i < 4; i++){
+            temp += record[(char_size + 2) * 6 + i] * pow(2, 5-i);
+        }
+        encoded[char_size + 2] = base64[temp];
+
+        encoded[char_size + 3] = '=';
+        encoded[char_size + 4] = '\0';
+    }
+
+    return encoded;
+}
+
+int* base64_decode(char* record, int size){
+    int int_size = 0;
+    int* decoded = NULL;
+    int temp = 0;
+
+    if(record[size - 2] == '=' && record[size - 3] != '='){
+        int_size = (((size - 1) / 4) - 1) * 24 + 16;
+        decoded = (int*)malloc(sizeof(int) * int_size);
+
+        for(int i = 0; i < size - 1; i++){
+            temp = base64_lookup(record[i]);
+            for(int j = 0; j < 6; j++){
+                if(temp - pow(2, 5 - j) > 0){
+                    decoded[i * 6 + j] = 1;
+                    temp -= pow(2, 5 - j);
+                }
+                else{
+                    decoded[i * 6 + j] = 0;
+                }
+            }
+        }
+    }
+    else if(record[size - 2] == '=' && record[size - 3] == '='){
+        int_size = (((size - 1) / 4) - 1) * 24 + 8;
+        decoded = (int*)malloc(sizeof(int) * int_size);
+        
+        for(int i = 0; i < size - 5; i++){
+            temp = base64_lookup(record[i]);
+            for(int j = 0; j < 6; j++){
+                if(temp - pow(2, 5 - j) > 0){
+                    decoded[i * 6 + j] = 1;
+                    temp -= pow(2, 5 - j);
+                }
+                else{
+                    decoded[i * 6 + j] = 0;
+                }
+            }
+        }
+
+        temp = base64_lookup(record[size - 5]);
+        for(int j = 0; j < 6; j++){
+            if(temp - pow(2, 5 - j) > 0){
+                decoded[(size - 5) * 6 + j] = 1;
+                temp -= pow(2, 5 - j);
+            }
+            else{
+                decoded[(size - 5) * 6 + j] = 0;
+            }
+        }
+
+        temp = base64_lookup(record[size - 4]);
+        for(int j = 0; j < 2; j++){
+            if(temp - pow(2, 5 - j) > 0){
+                decoded[(size - 4) * 6 + j] = 1;
+                temp -= pow(2, 5 - j);
+            }
+            else{
+                decoded[(size - 4) * 6 + j] = 0;
+            }
+        }
+    }
+    else{
+        int_size = (((size - 1) / 4) - 1) * 24;
+        decoded = (int*)malloc(sizeof(int) * int_size);
+
+        for(int i = 0; i < size - 5; i++){
+            temp = base64_lookup(record[i]);
+            for(int j = 0; j < 6; j++){
+                if(temp - pow(2, 5 - j) > 0){
+                    decoded[i * 6 + j] = 1;
+                    temp -= pow(2, 5 - j);
+                }
+                else{
+                    decoded[i * 6 + j] = 0;
+                }
+            }
+        }
+
+        temp = base64_lookup(record[size - 5]);
+        for(int j = 0; j < 6; j++){
+            if(temp - pow(2, 5 - j) > 0){
+                decoded[(size - 5) * 6 + j] = 1;
+                temp -= pow(2, 5 - j);
+            }
+            else{
+                decoded[(size - 5) * 6 + j] = 0;
+            }
+        }
+
+        temp = base64_lookup(record[size - 4]);
+        for(int j = 0; j < 6; j++){
+            if(temp - pow(2, 5 - j) > 0){
+                decoded[(size - 4) * 6 + j] = 1;
+                temp -= pow(2, 5 - j);
+            }
+            else{
+                decoded[(size - 4) * 6 + j] = 0;
+            }
+        }
+
+        temp = base64_lookup(record[size - 3]);
+        for(int j = 0; j < 4; j++){
+            if(temp - pow(2, 5 - j) > 0){
+                decoded[(size - 3) * 6 + j] = 1;
+                temp -= pow(2, 5 - j);
+            }
+            else{
+                decoded[(size - 3) * 6 + j] = 0;
+            }
+        }
+    }
+
+    return decoded;
+}
+
+int base64_lookup(char input){
+    int temp = 0;
+
+    char base64[] = {
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+        'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+        'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+        'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+        'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+        'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+        'w', 'x', 'y', 'z', '0', '1', '2', '3',
+        '4', '5', '6', '7', '8', '9', '+', '/'
+    };
+
+    for(int i = 0; i < 64; i++){
+        if(base64[i] == input){
+            temp = i;
+            break;
+        }
+    }
+
+    return temp;
+}

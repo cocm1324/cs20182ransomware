@@ -30,4 +30,8 @@ int encap_size(char*, int);
 char* decapsulate_des_compatable_size(char*);
 int decap_size(char*);
 
+char* base64_encode(int*, int);
+int* base64_decode(char*, int);
+int base64_lookup(char);
+
 #endif
