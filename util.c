@@ -184,12 +184,15 @@ char* int_to_byte(int* buffer, int size){
         (buffer[8*i + j] == 0) ? (buffer[8*i + j] = 1) : (buffer[8*i + j] = 0);
 
       buffer[8*i + 7] += 1;
-      for(int j = 7; j > 0 ; j--){
+      for(int j = 7; j >= 0 ; j--){
         if(buffer[8*i + j] == 2){
           buffer[8*i + j] = 0;
           buffer[8*i + j - 1] += 1;
         }
         else break;}
+
+      if(buffer[8*i] == 2)
+        data += pow(2.0,7);
 
       for(int j = 7; j > 0 ; j--)
         data += pow(2.0,(7-j)) * buffer[8*i + j];
