@@ -125,25 +125,78 @@ int* string_to_hex(char* input, int size){
 }
 
 
-int* ByteToInt(char *buffer, int size){
-  int* intarray = (int*)malloc(sizeof(int) * (size) * 4);
+int* byte_to_int(char *buffer, int size){
+  int* intarray = (int*)malloc(sizeof(int) * (size) * 8);
+  int element;
 
-  for(int i = 0, j = 0; i < size * 4; i++){
-    if( (i % 4) == 3){
-      intarray[i] = buffer[j] - '0';
-      j++;
-    }else      intarray[i] = 0;
+  for(int j = 0; j < size; j++){
+    element = buffer[j];
+    int flag = 0;
 
+    if(element < 0){
+      flag = 1;
+      element *= -1;
+    }
+
+    for(int i = 7; i >= 0 ; i--){
+        intarray[8*j + i] = element % 2;
+        element >>= 1;
+    }
+
+    if(flag == 1){
+      for(int i = 7; i > 0 ; i--)
+        (intarray[8*j + i] == 0) ? (intarray[8*j + i] = 1) : (intarray[8*j + i] = 0);
+      intarray[8*j + 7] += 1;
+
+      for(int i = 7; i > 0 ; i--){
+        if(intarray[8*j + i] == 2){
+          intarray[8*j + i] = 0;
+          intarray[8*j + i - 1] += 1;
+        }
+        else break;
+      }
+      intarray[8*j] = 1;
+    }
   }
 
   return intarray;
 }
 
-char* InttoByte(int* buffer, int size){
-  char* bytearray = (char*)malloc(sizeof(char) * size/4);
 
-  for(int i = 0; i < size/4 ; i++){
-      bytearray[i] = buffer[(i+1)*4 - 1] + '0';
+char* int_to_byte(int* buffer, int size){
+  char* bytearray = (char*)malloc(sizeof(char) * (size) / 8);
+  // char* bytearray = char_array_init(size / 8);
+
+  for(int i = 0; i < size / 8 ; i++){
+    int flag = 0;
+    int data = 0;
+
+    if(buffer[8*i] == 1)
+      flag = 1;
+
+    if(flag == 0){
+      for(int j = 7; j > 0 ; j--){
+        data += pow(2.0,(7-j)) * buffer[8*i + j];
+      }
+    }
+    else if (flag == 1){
+      for(int j = 7; j > 0 ; j--)
+        (buffer[8*i + j] == 0) ? (buffer[8*i + j] = 1) : (buffer[8*i + j] = 0);
+
+      buffer[8*i + 7] += 1;
+      for(int j = 7; j > 0 ; j--){
+        if(buffer[8*i + j] == 2){
+          buffer[8*i + j] = 0;
+          buffer[8*i + j - 1] += 1;
+        }
+        else break;}
+
+      for(int j = 7; j > 0 ; j--)
+        data += pow(2.0,(7-j)) * buffer[8*i + j];
+
+      data *= -1;
+    }
+    bytearray[i] = data;
   }
 
   return bytearray;
