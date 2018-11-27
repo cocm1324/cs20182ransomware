@@ -163,46 +163,55 @@ int* byte_to_int(char *buffer, int size){
 }
 
 
-char* int_to_byte(int* buffer, int size){
-  char* bytearray = (char*)malloc(sizeof(char) * (size) / 8);
-  // char* bytearray = char_array_init(size / 8);
+char* int_to_byte(int* record, int size){
+    int* buffer = array_init(size);
+    array_shallow_copy(buffer, record, size);
+    char* bytearray = char_array_init(size / 8);
 
-  for(int i = 0; i < size / 8 ; i++){
     int flag = 0;
     int data = 0;
 
-    if(buffer[8*i] == 1)
-      flag = 1;
 
-    if(flag == 0){
-      for(int j = 7; j > 0 ; j--){
-        data += pow(2.0,(7-j)) * buffer[8*i + j];
-      }
-    }
-    else if (flag == 1){
-      for(int j = 7; j > 0 ; j--)
-        (buffer[8*i + j] == 0) ? (buffer[8*i + j] = 1) : (buffer[8*i + j] = 0);
+    for(int i = 0; i < size / 8 ; i++){
+        flag = 0;
+        data = 0;
 
-      buffer[8*i + 7] += 1;
-      for(int j = 7; j >= 0 ; j--){
-        if(buffer[8*i + j] == 2){
-          buffer[8*i + j] = 0;
-          buffer[8*i + j - 1] += 1;
+        if(buffer[8*i] == 1)
+        flag = 1;
+
+        if(flag == 0){
+            for(int j = 7; j > 0 ; j--){
+                data += pow(2.0,(7-j)) * buffer[8*i + j];
+            }
         }
-        else break;}
+        else if (flag == 1){
 
-      if(buffer[8*i] == 2)
-        data += pow(2.0,7);
+            for(int j = 7; j > 0 ; j--)
+                (buffer[8*i + j] == 0) ? (buffer[8*i + j] = 1) : (buffer[8*i + j] = 0);
 
-      for(int j = 7; j > 0 ; j--)
-        data += pow(2.0,(7-j)) * buffer[8*i + j];
+            buffer[8*i + 7] += 1;
+            for(int j = 7; j > 0 ; j--){
+                if(buffer[8*i + j] == 2){
+                    buffer[8*i + j] = 0;
+                    buffer[8*i + j - 1] += 1;
+                }
+                else break;
+            }
 
-      data *= -1;
+            if(buffer[8*i] == 2) data += pow(2.0,7);
+
+            for(int j = 7; j > 0 ; j--)
+                data += pow(2.0,(7-j)) * buffer[8*i + j];
+                
+            data *= -1;
+        }
+        bytearray[i] = data;
     }
-    bytearray[i] = data;
-  }
 
-  return bytearray;
+    free(buffer);
+    buffer = NULL;
+
+    return bytearray;
 }
 
 char* char_array_init(int size){
@@ -264,9 +273,38 @@ int decap_size(char* buffer){
     return size;
 }
 
+int base64_encode_size(int size){
+    int ret = 0;
+
+    if(size % 3 == 0){
+        ret = (size / 3) * 4;
+    }
+    else{
+        ret = (size / 3 + 1) * 4;
+    }
+
+    return ret;
+}
+
+int base64_decode_size(char* record, int size){
+    int ret = 0;
+
+    if(record[size - 1] == '=' && record[size - 2] != '='){
+        ret = ((size - 4) / 4) * 3 + 2;
+    }
+    else if(record[size - 1] == '=' && record[size - 2] == '='){
+        ret = ((size - 4) / 4) * 3 + 1; 
+    }
+    else{
+        ret = (size / 4) * 3;
+    }
+
+    return ret;
+}
 
 //base64 int to char
-char* base64_encode(int* record, int size){
+char* base64_encode(char* byte_record, int size){
+    int* record = byte_to_int(byte_record, size);
     char* encoded = NULL;
     char base64[] = {
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
@@ -279,11 +317,11 @@ char* base64_encode(int* record, int size){
         '4', '5', '6', '7', '8', '9', '+', '/'
     };
     int temp = 0;
-    int char_size = size / 24;
-    char_size = char_size * 4;
+    int char_size = 0;
 
-    if(size % 24 == 0){
-        encoded = (char*)malloc(sizeof(char) * (char_size + 1));
+    if(size % 3 == 0){
+        char_size = (size / 3) * 4;
+        encoded = (char*)malloc(sizeof(char) * char_size);
 
         for(int i = 0; i < char_size; i++){
             temp = 0;
@@ -292,11 +330,10 @@ char* base64_encode(int* record, int size){
             }
             encoded[i] = base64[temp];
         }
-
-        encoded[char_size + 4] = '\0';
     }
-    else if(size % 24 == 16){
-        encoded = (char*)malloc(sizeof(char) * char_size + 5);
+    else if(size % 3 == 2){
+        char_size = (size / 3 + 1) * 4;
+        encoded = (char*)malloc(sizeof(char) * char_size);
 
         for(int i = 0; i < char_size; i++){
             temp = 0;
@@ -310,7 +347,7 @@ char* base64_encode(int* record, int size){
         for(int i = 0; i < 6; i++){
             temp += record[char_size * 6 + i] * pow(2, 5-i);
         }
-        encoded[char_size] =  base64[temp];
+        encoded[char_size] = base64[temp];
 
         temp = 0;
         for(int i = 0; i < 2; i++){
@@ -320,10 +357,10 @@ char* base64_encode(int* record, int size){
 
         encoded[char_size + 2] = '=';
         encoded[char_size + 3] = '=';
-        encoded[char_size + 4] = '\0';
     }
-    else if(size % 24 == 8){
-        encoded = (char*)malloc(sizeof(char) * char_size + 5);
+    else if(size % 3 == 1){
+        char_size = (size / 3 + 1) * 4;
+        encoded = (char*)malloc(sizeof(char) * char_size);
 
         for(int i = 0; i < char_size; i++){
             temp = 0;
@@ -352,20 +389,17 @@ char* base64_encode(int* record, int size){
         encoded[char_size + 2] = base64[temp];
 
         encoded[char_size + 3] = '=';
-        encoded[char_size + 4] = '\0';
     }
-
     return encoded;
 }
 
-int* base64_decode(char* record, int size){
-    int int_size = 0;
-    int* decoded = NULL;
+char* base64_decode(char* record, int size){
+    int char_size = base64_decode_size(record, size);
+    int* decoded = (int*)malloc(sizeof(int) * char_size * 8);
+    char* ret = NULL;
     int temp = 0;
 
-    if(record[size - 2] == '=' && record[size - 3] != '='){
-        int_size = (((size - 1) / 4) - 1) * 24 + 16;
-        decoded = (int*)malloc(sizeof(int) * int_size);
+    if(record[size - 1] == '=' && record[size - 2] != '='){
 
         for(int i = 0; i < size - 1; i++){
             temp = base64_lookup(record[i]);
@@ -380,10 +414,7 @@ int* base64_decode(char* record, int size){
             }
         }
     }
-    else if(record[size - 2] == '=' && record[size - 3] == '='){
-        int_size = (((size - 1) / 4) - 1) * 24 + 8;
-        decoded = (int*)malloc(sizeof(int) * int_size);
-        
+    else if(record[size - 1] == '=' && record[size - 2] == '='){
         for(int i = 0; i < size - 5; i++){
             temp = base64_lookup(record[i]);
             for(int j = 0; j < 6; j++){
@@ -420,9 +451,6 @@ int* base64_decode(char* record, int size){
         }
     }
     else{
-        int_size = (((size - 1) / 4) - 1) * 24;
-        decoded = (int*)malloc(sizeof(int) * int_size);
-
         for(int i = 0; i < size - 5; i++){
             temp = base64_lookup(record[i]);
             for(int j = 0; j < 6; j++){
@@ -470,7 +498,9 @@ int* base64_decode(char* record, int size){
         }
     }
 
-    return decoded;
+    ret = int_to_byte(decoded, char_size * 8);
+
+    return ret;
 }
 
 int base64_lookup(char input){
@@ -495,4 +525,52 @@ int base64_lookup(char input){
     }
 
     return temp;
+}
+
+void char_array_print(char* record, int offset, int end, int flag){
+    if(offset > end){
+        sys_log("캐릭터 배열 출력 실패: offset이 end보다 큼");
+        return;
+    }
+    
+    if(flag == 1){
+        for(int i = offset; i < end; i++){
+            printf("%4d ",record[i]);
+            if(i % 16 == 15){
+                printf("\n");
+            }
+        }
+        printf("\n");
+    }
+    else{
+        for(int i = offset; i < end; i++){
+            printf("%c ",record[i]);
+            if(i % 16 == 15){
+                printf("\n");
+            }
+        }
+        printf("\n");
+    }
+
+    return;
+}
+
+void int_array_print(int* record, int offset, int end){
+    if(offset > end){
+        sys_log("인테저 배열 출력 실패: offset이 end보다 큼");
+        return;
+    }
+
+    for(int i = offset; i < end; i++){
+        printf("%d", record[i]);
+        if(i % 8 == 7){
+            printf(" ");
+        }
+        if(i % 64 == 63){
+            printf("\n");
+        }
+    }
+    printf("\n");
+
+    return;
 }

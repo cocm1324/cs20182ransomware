@@ -16,93 +16,59 @@ int filesize(char* filename){
     return filelen + 1;
 }
 
-char* encrypt_file_byte_read(char* filename){
-    FILE* fileptr = NULL;
-    char* buffer = NULL;
-    char* encap = NULL;
-    long filelen;
-    int encap_size_val = 0;
+char* file_byte_read(char* filename){
+    FILE* fp;
+    size_t size;
+    long length;
+    char* buffer;
+    char* encap;
+ 
+    fp = fopen(filename, "rb");
+    if (fp == NULL) {
+        sys_log("file open error");
+        return 0;
+    }
 
-    fileptr = fopen(filename, "rb");                   // Open the file in binary mode
-    fseek(fileptr, 0, SEEK_END);                       // Jump to the end of the file
-    filelen = ftell(fileptr);                          // Get the current byte offset in the file
-    rewind(fileptr);                                   // Jump back to the beginning of the file
-
-    buffer = (char *)malloc((filelen+1) * sizeof(char));
-    fread(buffer, filelen, 1, fileptr);
-
-    encap = encapsulate_des_compatable_size(buffer, filelen + 1);
-    encap_size_val = encap_size(buffer, filelen + 1);
-
-    fclose(fileptr); // Close the file
-    fileptr = NULL;
-    free(buffer);
-    buffer = NULL;
-
-    return encap;
+    /* Obtain file size */
+    if (fseek(fp, 0, SEEK_END) != 0) {
+        sys_log("repositioning error");
+        return 0;
+    }
+    length = ftell(fp);
+    if (fseek(fp, 0L, SEEK_SET) != 0) {
+        sys_log("repositioning error");
+        return 0;
+    }
+ 
+    /* Allocate memory to contain whole file */
+    buffer = (char*)malloc(length);
+    if (buffer == NULL) {
+        /* Handle memory allocation error */
+        sys_log("memory alloc error");
+    }
+     
+    /* size assigned here in some other code */
+    if (fread(buffer, 1, length, fp) < length) {
+        sys_log("file open error");
+        return 0;
+    }
+    fclose(fp);
+    
+    return buffer;
 }
 
-void encrypt_file_byte_write(char* filename, char* buffer, int size){
+
+void file_byte_write(char* filename, char* buffer, int size){
     FILE* fileptr = NULL;
-    int filelen = size;
-    int decap_size_val = 0;
-    char* decap = NULL;
 
-    decap = char_array_init(filelen + 1);
-    char_array_shallow_copy(decap, buffer, 0, ENCAP_HEADER_SIZE, filelen);
-    decap[filelen] = '\0';
+    fileptr = fopen(filename, "wb");
+    if (fileptr == NULL) {
+        sys_log("file open error");
+        return;
+    }
 
-    fileptr = fopen(filename, "wb");                                                                           
-    fwrite(decap, 1, filelen + 1, fileptr);
+    fwrite(buffer, 1, (long)size, fileptr);
 
     fclose(fileptr); // Close the file
     fileptr = NULL;
-    free(decap);
-    decap = NULL;
-}
-
-char* decrypt_file_byte_read(char* filename){
-    FILE* fileptr = NULL;
-    char* buffer = NULL;
-    char* encap = NULL;
-    long filelen;
-    int encap_size_val = 0;
-
-    fileptr = fopen(filename, "rb");                   // Open the file in binary mode
-    fseek(fileptr, 0, SEEK_END);                            // Jump to the end of the file
-    filelen = ftell(fileptr);                               // Get the current byte offset in the file
-    rewind(fileptr);                                        // Jump back to the beginning of the file
-
-    buffer = (char *)malloc((filelen+1) * sizeof(char));
-    fread(buffer, filelen, 1, fileptr);
-
-    encap = encapsulate_des_compatable_size(buffer, filelen + 1);
-    encap_size_val = encap_size(buffer, filelen + 1);
-
-    fclose(fileptr); // Close the file
-    fileptr = NULL;
-    free(buffer);
-    buffer = NULL;
-
-    return encap;
-}
-
-void decrypt_file_byte_write(char* filename, char* buffer){
-    FILE* fileptr = NULL;
-    char* decap = NULL;
-    long filelen;
-    int decap_size_val = 0;
-
-    filelen = decap_size(buffer);
-    decap = (char*)malloc(sizeof(char) * filelen);
-    char_array_shallow_copy(decap, buffer, 0, ENCAP_HEADER_SIZE, filelen);
-
-    fileptr = fopen(filename, "wb");                                          
-    rewind(fileptr);                                   
-    fwrite(decap, filelen, 1, fileptr);
-
-    fclose(fileptr); // Close the file
-    fileptr = NULL;
-    free(decap);
-    decap = NULL;
 }
