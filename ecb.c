@@ -29,9 +29,6 @@ void send_keyinfo(char *enkey){
     fp = fopen("genkey444.txt", "wb");
     fwrite(keyinfo, strlen(keyinfo), 1, fp);
     fclose(fp);
-
-    free(keyinfo);
-    free(user_name);
     free(fp);
 }
 
@@ -49,17 +46,10 @@ char* rand_key_generator() {
 }
 
 int* ecb_des_encrypt(int* encap_bit, int size){
-    sys_log("check");
     int* check = string_to_hex(rand_key_generator(), BLOCK_SIZE / 4);
-    sys_log("check1");
     int* keybit = hex_to_bitwise(check, BLOCK_SIZE / 4);
-    sys_log("check2");
-
     int* encrypted = array_init(size);
-    sys_log("check3");
-
     int* plain = array_init(BLOCK_SIZE);
-    sys_log("check4");
     for(int i = 0; i < size/BLOCK_SIZE; i++){
         for(int j = 0; j < BLOCK_SIZE; j++){
             plain[j] = encap_bit[i*BLOCK_SIZE+j];
@@ -72,7 +62,6 @@ int* ecb_des_encrypt(int* encap_bit, int size){
 
     free(keybit);
     free(plain);
-
     return encrypted;
 }
 

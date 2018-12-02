@@ -119,7 +119,6 @@ int* string_to_hex(char* input, int size){
         else if(input[i] >= 'a' && input[i] < 'g')ret_val[i] = input[i] - 'a' + 10;
         else if(input[i] >= 'A' && input[i] < 'G')ret_val[i] = input[i] - 'A' + 10;
         else input[i] = 0;
-        printf("%d\n", input[i]);
     }
 
     return ret_val;
@@ -766,7 +765,7 @@ char* file_byte_read(char* filename){
 
     fp = fopen(filename, "rb");
     if (fp == NULL) {
-        sys_log("file open error");
+        sys_log("(file_byte_read)file open error");
         return 0;
     }
 
@@ -801,10 +800,13 @@ char* file_byte_read(char* filename){
 
 void file_byte_write(char* filename, char* buffer, int size){
     FILE* fileptr = NULL;
+    printf("size %d\n",size );
+    printf("name %s\n",filename);
 
     fileptr = fopen(filename, "wb");
+
     if (fileptr == NULL) {
-        sys_log("file open error");
+        sys_log("file_byte_write: file open error");
         return;
     }
 

