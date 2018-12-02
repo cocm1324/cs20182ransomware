@@ -1,6 +1,6 @@
 CC=gcc
 TARGET=a.out
-OBJS=main.o des.o util.o fileio.o
+OBJS=main.o ecb.o des.o util.o ransomware.o
 
 all: $(TARGET)
 

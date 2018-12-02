@@ -202,7 +202,7 @@ char* int_to_byte(int* record, int size){
 
             for(int j = 7; j > 0 ; j--)
                 data += pow(2.0,(7-j)) * buffer[8*i + j];
-                
+
             data *= -1;
         }
         bytearray[i] = data;
@@ -280,7 +280,7 @@ int base64_encode_size(int size){
         ret = (size / 3) * 4;
     }
     else{
-        ret = (size / 3 + 1) * 4;
+        ret = ((size / 3) * 4) + 4;
     }
 
     return ret;
@@ -289,11 +289,13 @@ int base64_encode_size(int size){
 int base64_decode_size(char* record, int size){
     int ret = 0;
 
-    if(record[size - 1] == '=' && record[size - 2] != '='){
-        ret = ((size - 4) / 4) * 3 + 2;
-    }
-    else if(record[size - 1] == '=' && record[size - 2] == '='){
-        ret = ((size - 4) / 4) * 3 + 1; 
+    if(record[size - 1] == '='){
+        if(record[size - 2] == '='){
+            ret = ((size - 4) / 4) * 3 + 1;
+        }
+        else{
+            ret = ((size - 4) / 4) * 3 + 2;
+        }
     }
     else{
         ret = (size / 4) * 3;
@@ -304,8 +306,6 @@ int base64_decode_size(char* record, int size){
 
 //base64 int to char
 char* base64_encode(char* byte_record, int size){
-    int* record = byte_to_int(byte_record, size);
-    char* encoded = NULL;
     char base64[] = {
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
         'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -316,191 +316,353 @@ char* base64_encode(char* byte_record, int size){
         'w', 'x', 'y', 'z', '0', '1', '2', '3',
         '4', '5', '6', '7', '8', '9', '+', '/'
     };
+    int* record = byte_to_int(byte_record, size);
     int temp = 0;
-    int char_size = 0;
+    char* encoded = char_array_init(base64_encode_size(size));
+    int temp_size = (size / 3) * 4;
 
-    if(size % 3 == 0){
-        char_size = (size / 3) * 4;
-        encoded = (char*)malloc(sizeof(char) * char_size);
 
-        for(int i = 0; i < char_size; i++){
-            temp = 0;
-            for(int j = 0; j < 6; j++){
-                temp += record[(i * 6) + j] * pow(2, 5-j);
-            }
-            encoded[i] = base64[temp];
+    for(int j = 0; j < temp_size; j++){
+        temp = 0;
+        for(int i = 0; i < 6; i++){
+            temp += record[j * 6 + i] * pow(2, 5 - i);
         }
+        encoded[j] = base64[temp];
     }
-    else if(size % 3 == 2){
-        char_size = (size / 3 + 1) * 4;
-        encoded = (char*)malloc(sizeof(char) * char_size);
 
-        for(int i = 0; i < char_size; i++){
-            temp = 0;
-            for(int j = 0; j < 6; j++){
-                temp += record[(i * 6) + j] * pow(2, 5-j);
-            }
-            encoded[i] = base64[temp];
+    if(size % 3 == 1){
+        temp = 0;
+        for(int i = 0; i < 6; i++){
+            temp += record[temp_size * 6 + i] * pow(2, 5 - i);
         }
+        encoded[temp_size] = base64[temp];
+
+        temp = (record[(temp_size + 1) * 6] * 32) + (record[(temp_size + 1) * 6 + 1] * 16);
+        encoded[temp_size + 1] = base64[temp];
+
+        encoded[temp_size + 2] = '=';
+        encoded[temp_size + 3] = '=';
+    }
+
+    if(size % 3 == 2){
+        temp = 0;
+        for(int i = 0; i < 6; i++){
+            temp += record[temp_size * 6 + i] * pow(2, 5 - i);
+        }
+        encoded[temp_size] = base64[temp];
 
         temp = 0;
         for(int i = 0; i < 6; i++){
-            temp += record[char_size * 6 + i] * pow(2, 5-i);
+            temp += record[(temp_size + 1) * 6 + i] * pow(2, 5 - i);
         }
-        encoded[char_size] = base64[temp];
+        encoded[temp_size+1] = base64[temp];
 
-        temp = 0;
-        for(int i = 0; i < 2; i++){
-            temp += record[(char_size + 1) * 6 + i] * pow(2, 5-i);
-        }
-        encoded[char_size + 1] =  base64[temp];
+        temp = (record[(temp_size + 2) * 6] * 32) + (record[(temp_size + 2) * 6 + 1] * 16) + (record[(temp_size + 2) * 6 + 2] * 8) + (record[(temp_size + 2) * 6 + 3] * 4);
+        encoded[temp_size + 2] = base64[temp];
 
-        encoded[char_size + 2] = '=';
-        encoded[char_size + 3] = '=';
+        encoded[temp_size + 3] = '=';
     }
-    else if(size % 3 == 1){
-        char_size = (size / 3 + 1) * 4;
-        encoded = (char*)malloc(sizeof(char) * char_size);
 
-        for(int i = 0; i < char_size; i++){
-            temp = 0;
-            for(int j = 0; j < 6; j++){
-                temp += record[(i * 6) + j] * pow(2, 5-j);
-            }
-            encoded[i] = base64[temp];
-        }
-
-        temp = 0;
-        for(int i = 0; i < 6; i++){
-            temp += record[char_size * 6 + i] * pow(2, 5-i);
-        }
-        encoded[char_size] = base64[temp];
-
-        temp = 0;
-        for(int i = 0; i < 6; i++){
-            temp += record[(char_size + 1) * 6 + i] * pow(2, 5-i);
-        }
-        encoded[char_size + 1] = base64[temp];
-
-        temp = 0;
-        for(int i = 0; i < 4; i++){
-            temp += record[(char_size + 2) * 6 + i] * pow(2, 5-i);
-        }
-        encoded[char_size + 2] = base64[temp];
-
-        encoded[char_size + 3] = '=';
-    }
     return encoded;
 }
 
 char* base64_decode(char* record, int size){
-    int char_size = base64_decode_size(record, size);
-    int* decoded = (int*)malloc(sizeof(int) * char_size * 8);
-    char* ret = NULL;
+    int temp_size = base64_decode_size(record, size) * 8;
+    int* temp_record = array_init(temp_size);
+    char* decoded = NULL;
     int temp = 0;
 
-    if(record[size - 1] == '=' && record[size - 2] != '='){
 
-        for(int i = 0; i < size - 1; i++){
-            temp = base64_lookup(record[i]);
-            for(int j = 0; j < 6; j++){
-                if(temp - pow(2, 5 - j) > 0){
-                    decoded[i * 6 + j] = 1;
-                    temp -= pow(2, 5 - j);
-                }
-                else{
-                    decoded[i * 6 + j] = 0;
-                }
-            }
+
+    for(int i = 0; i < size - 4; i++){
+        temp = base64_lookup(record[i]);
+
+        if(temp >= 32){
+            temp_record[i * 6] = 1;
+            temp -= 32;
         }
+        else{
+            temp_record[i * 6] = 0;
+        }
+
+        if(temp >= 16){
+            temp_record[i * 6 + 1] = 1;
+            temp -= 16;
+        }
+        else{
+            temp_record[i * 6 + 1] = 0;
+        }
+
+        if(temp >= 8){
+            temp_record[i * 6 + 2] = 1;
+            temp -= 8;
+        }
+        else{
+            temp_record[i * 6 + 2] = 0;
+        }
+
+        if(temp >= 4){
+            temp_record[i * 6 + 3] = 1;
+            temp -= 4;
+        }
+        else{
+            temp_record[i * 6 + 3] = 0;
+        }
+
+        if(temp >= 2){
+            temp_record[i * 6 + 4] = 1;
+            temp -= 2;
+        }
+        else{
+            temp_record[i * 6 + 4] = 0;
+        }
+
+        temp_record[i * 6 + 5] = temp;
     }
-    else if(record[size - 1] == '=' && record[size - 2] == '='){
-        for(int i = 0; i < size - 5; i++){
-            temp = base64_lookup(record[i]);
-            for(int j = 0; j < 6; j++){
-                if(temp - pow(2, 5 - j) > 0){
-                    decoded[i * 6 + j] = 1;
-                    temp -= pow(2, 5 - j);
-                }
-                else{
-                    decoded[i * 6 + j] = 0;
-                }
-            }
-        }
 
-        temp = base64_lookup(record[size - 5]);
-        for(int j = 0; j < 6; j++){
-            if(temp - pow(2, 5 - j) > 0){
-                decoded[(size - 5) * 6 + j] = 1;
-                temp -= pow(2, 5 - j);
+    if(record[size - 1] == '='){
+        if(record[size - 2] == '='){
+            temp = base64_lookup(record[size - 4]);
+
+            if(temp >= 32){
+                temp_record[(size - 4) * 6] = 1;
+                temp -= 32;
             }
             else{
-                decoded[(size - 5) * 6 + j] = 0;
+                temp_record[(size - 4) * 6] = 0;
             }
-        }
 
-        temp = base64_lookup(record[size - 4]);
-        for(int j = 0; j < 2; j++){
-            if(temp - pow(2, 5 - j) > 0){
-                decoded[(size - 4) * 6 + j] = 1;
-                temp -= pow(2, 5 - j);
+            if(temp >= 16){
+                temp_record[(size - 4) * 6 + 1] = 1;
+                temp -= 16;
             }
             else{
-                decoded[(size - 4) * 6 + j] = 0;
+                temp_record[(size - 4) * 6 + 1] = 0;
+            }
+
+            if(temp >= 8){
+                temp_record[(size - 4)* 6 + 2] = 1;
+                temp -= 8;
+            }
+            else{
+                temp_record[(size - 4) * 6 + 2] = 0;
+            }
+
+            if(temp >= 4){
+                temp_record[(size - 4) * 6 + 3] = 1;
+                temp -= 4;
+            }
+            else{
+                temp_record[(size - 4) * 6 + 3] = 0;
+            }
+
+            if(temp >= 2){
+                temp_record[(size - 4) * 6 + 4] = 1;
+                temp -= 2;
+            }
+            else{
+                temp_record[(size - 4) * 6 + 4] = 0;
+            }
+            temp_record[(size - 4) * 6 + 5] = temp;
+
+            temp = base64_lookup(record[size - 3]);
+
+            if(temp >= 32){
+                temp_record[(size - 3) * 6] = 1;
+                temp -= 32;
+            }
+            else{
+                temp_record[(size - 3) * 6] = 0;
+            }
+
+            if(temp >= 16){
+                temp_record[(size - 3) * 6 + 1] = 1;
+                temp -= 16;
+            }
+            else{
+                temp_record[(size - 3) * 6 + 1] = 0;
+            }
+
+        }
+        else{
+            temp = base64_lookup(record[size - 4]);
+
+            if(temp >= 32){
+                temp_record[(size - 4)  * 6] = 1;
+                temp -= 32;
+            }
+            else{
+                temp_record[(size - 4) * 6] = 0;
+            }
+
+            if(temp >= 16){
+                temp_record[(size - 4) * 6 + 1] = 1;
+                temp -= 16;
+            }
+            else{
+                temp_record[(size - 4) * 6 + 1] = 0;
+            }
+
+            if(temp >= 8){
+                temp_record[(size - 4) * 6 + 2] = 1;
+                temp -= 8;
+            }
+            else{
+                temp_record[(size - 4) * 6 + 2] = 0;
+            }
+
+            if(temp >= 4){
+                temp_record[(size - 4) * 6 + 3] = 1;
+                temp -= 4;
+            }
+            else{
+                temp_record[(size - 4) * 6 + 3] = 0;
+            }
+
+            if(temp >= 2){
+                temp_record[(size - 4) * 6 + 4] = 1;
+                temp -= 2;
+            }
+            else{
+                temp_record[(size - 4) * 6 + 4] = 0;
+            }
+            temp_record[(size - 4) * 6 + 5] = temp;
+
+
+
+            temp = base64_lookup(record[size - 3]);
+
+            if(temp >= 32){
+                temp_record[(size - 3) * 6] = 1;
+                temp -= 32;
+            }
+            else{
+                temp_record[(size - 3) * 6] = 0;
+            }
+
+            if(temp >= 16){
+                temp_record[(size - 3) * 6 + 1] = 1;
+                temp -= 16;
+            }
+            else{
+                temp_record[(size - 3) * 6 + 1] = 0;
+            }
+
+            if(temp >= 8){
+                temp_record[(size - 3) * 6 + 2] = 1;
+                temp -= 8;
+            }
+            else{
+                temp_record[(size - 3) * 6 + 2] = 0;
+            }
+
+            if(temp >= 4){
+                temp_record[(size - 3) * 6 + 3] = 1;
+                temp -= 4;
+            }
+            else{
+                temp_record[(size - 3) * 6 + 3] = 0;
+            }
+
+            if(temp >= 2){
+                temp_record[(size - 3) * 6 + 4] = 1;
+                temp -= 2;
+            }
+            else{
+                temp_record[(size - 3) * 6 + 4] = 0;
+            }
+
+            temp_record[(size - 3) * 6 + 5] = temp;
+
+            temp = base64_lookup(record[size - 2]);
+
+            if(temp >= 32){
+                temp_record[(size - 2) * 6] = 1;
+                temp -= 32;
+            }
+            else{
+                temp_record[(size - 2) * 6] = 0;
+            }
+
+            if(temp >= 16){
+                temp_record[(size - 2) * 6 + 1] = 1;
+                temp -= 16;
+            }
+            else{
+                temp_record[(size - 2) * 6 + 1] = 0;
+            }
+
+            if(temp >= 8){
+                temp_record[(size - 2) * 6 + 2] = 1;
+                temp -= 8;
+            }
+            else{
+                temp_record[(size - 2) * 6 + 2] = 0;
+            }
+
+            if(temp >= 4){
+                temp_record[(size - 2) * 6 + 3] = 1;
+                temp -= 4;
+            }
+            else{
+                temp_record[(size - 2) * 6 + 3] = 0;
             }
         }
     }
     else{
-        for(int i = 0; i < size - 5; i++){
+        for(int i = size - 4; i < size; i++){
             temp = base64_lookup(record[i]);
-            for(int j = 0; j < 6; j++){
-                if(temp - pow(2, 5 - j) > 0){
-                    decoded[i * 6 + j] = 1;
-                    temp -= pow(2, 5 - j);
-                }
-                else{
-                    decoded[i * 6 + j] = 0;
-                }
-            }
-        }
 
-        temp = base64_lookup(record[size - 5]);
-        for(int j = 0; j < 6; j++){
-            if(temp - pow(2, 5 - j) > 0){
-                decoded[(size - 5) * 6 + j] = 1;
-                temp -= pow(2, 5 - j);
+            if(temp >= 32){
+                temp_record[i * 6] = 1;
+                temp -= 32;
             }
             else{
-                decoded[(size - 5) * 6 + j] = 0;
+                temp_record[i * 6] = 0;
             }
-        }
 
-        temp = base64_lookup(record[size - 4]);
-        for(int j = 0; j < 6; j++){
-            if(temp - pow(2, 5 - j) > 0){
-                decoded[(size - 4) * 6 + j] = 1;
-                temp -= pow(2, 5 - j);
+            if(temp >= 16){
+                temp_record[i * 6 + 1] = 1;
+                temp -= 16;
             }
             else{
-                decoded[(size - 4) * 6 + j] = 0;
+                temp_record[i * 6 + 1] = 0;
             }
-        }
 
-        temp = base64_lookup(record[size - 3]);
-        for(int j = 0; j < 4; j++){
-            if(temp - pow(2, 5 - j) > 0){
-                decoded[(size - 3) * 6 + j] = 1;
-                temp -= pow(2, 5 - j);
+            if(temp >= 8){
+                temp_record[i * 6 + 2] = 1;
+                temp -= 8;
             }
             else{
-                decoded[(size - 3) * 6 + j] = 0;
+                temp_record[i * 6 + 2] = 0;
             }
+
+            if(temp >= 4){
+                temp_record[i * 6 + 3] = 1;
+                temp -= 4;
+            }
+            else{
+                temp_record[i * 6 + 3] = 0;
+            }
+
+            if(temp >= 2){
+                temp_record[i * 6 + 4] = 1;
+                temp -= 2;
+            }
+            else{
+                temp_record[i * 6 + 4] = 0;
+            }
+
+            temp_record[i * 6 + 5] = temp;
         }
     }
 
-    ret = int_to_byte(decoded, char_size * 8);
+    decoded = int_to_byte(temp_record, temp_size);
 
-    return ret;
+    free(temp_record);
+    temp_record = NULL;
+
+    return decoded;
 }
 
 int base64_lookup(char input){
@@ -532,7 +694,7 @@ void char_array_print(char* record, int offset, int end, int flag){
         sys_log("캐릭터 배열 출력 실패: offset이 end보다 큼");
         return;
     }
-    
+
     if(flag == 1){
         for(int i = offset; i < end; i++){
             printf("%4d ",record[i]);
@@ -573,4 +735,77 @@ void int_array_print(int* record, int offset, int end){
     printf("\n");
 
     return;
+}
+
+
+int filesize(char* filename){
+    FILE* fileptr = NULL;
+    int filelen;
+
+    fileptr = fopen(filename, "rb");                   // Open the file in binary mode
+    fseek(fileptr, 0, SEEK_END);                       // Jump to the end of the file
+    filelen = ftell(fileptr);                          // Get the current byte offset in the file
+    rewind(fileptr);
+
+    fclose(fileptr); // Close the file
+    fileptr = NULL;
+
+    return filelen;
+}
+
+char* file_byte_read(char* filename){
+    FILE* fp;
+    size_t size;
+    long length;
+    char* buffer;
+    char* encap;
+
+    fp = fopen(filename, "rb");
+    if (fp == NULL) {
+        sys_log("file open error1");
+        return 0;
+    }
+
+    /* Obtain file size */
+    if (fseek(fp, 0, SEEK_END) != 0) {
+        sys_log("repositioning error");
+        return 0;
+    }
+    length = ftell(fp);
+    if (fseek(fp, 0L, SEEK_SET) != 0) {
+        sys_log("repositioning error");
+        return 0;
+    }
+
+    /* Allocate memory to contain whole file */
+    buffer = (char*)malloc(length);
+    if (buffer == NULL) {
+        /* Handle memory allocation error */
+        sys_log("memory alloc error");
+    }
+
+    /* size assigned here in some other code */
+    if (fread(buffer, 1, length, fp) < length) {
+        sys_log("file open error2");
+        return 0;
+    }
+    fclose(fp);
+
+    return buffer;
+}
+
+
+void file_byte_write(char* filename, char* buffer, int size){
+    FILE* fileptr = NULL;
+
+    fileptr = fopen(filename, "wb");
+    if (fileptr == NULL) {
+        sys_log("file open error3");
+        return;
+    }
+
+    fwrite(buffer, 1, (long)size, fileptr);
+
+    fclose(fileptr); // Close the file
+    fileptr = NULL;
 }
