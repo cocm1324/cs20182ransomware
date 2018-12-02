@@ -17,12 +17,16 @@
 #include "ecb.h"
 #include "fileio.h"
 
+#define OFFSET 10000
 #define WINDOW 64
 
 int main(){
     /*
         변수 선언 파트
     */
+
+    char* filename = "sample.docx";
+    char* filename_locked = "sample.docx.locked";
 
     //1단계: 파일에서 바이트를 추출해내기
     int raw_filelen = 0;
@@ -94,10 +98,12 @@ int main(){
     /*
         로직 파트
     */
+
+    sys_log(filename);
     
     //1단계: 파일에서 바이트를 추출해내기
-    raw_filelen = filesize("jackson.jpg");             //파일 길이 얻기
-    raw_byte = file_byte_read("jackson.jpg");          //파일로부터 바이트 얻기
+    raw_filelen = filesize(filename);             //파일 길이 얻기
+    raw_byte = file_byte_read(filename);          //파일로부터 바이트 얻기
 
     //sys_log("raw");
     //char_array_print(raw_byte, 0, WINDOW, 1);
@@ -124,36 +130,38 @@ int main(){
     array_shallow_copy(encrypted_bit, encap_bit, encap_len * 8);    //아직 des가 없어서 encap을 바로 씀
     encrypted_byte = int_to_byte(encrypted_bit, encap_len * 8);
 
-    sys_log("encrypted");
-    char_array_print(encrypted_byte, 10000, encap_len, 1);
+    //sys_log("encrypted");
+    //char_array_print(encrypted_byte, 0, encap_len, 1);
 
 
     //5단계: base64로 인코딩하기
     encoded_len = base64_encode_size(encap_len);
     encoded = base64_encode(encrypted_byte, encap_len);
 
-    //sys_log("encoded");
-    //char_array_print(encoded, 0, encoded_len, 0);
+    sys_log("encoded");
+    char_array_print(encoded, OFFSET, encoded_len, 0);
+    printf("\n");
 
 
     //6단계: 파일로 저장하기
-    file_byte_write("jackson.jpg.locked", encoded, encoded_len);
+    file_byte_write(filename_locked, encoded, encoded_len);
 
+    sys_log(filename_locked);
 
     //7단계: 파일에서 바이트 추출하기
-    re_filelen = filesize("jackson.jpg.locked");
-    re_byte = file_byte_read("jackson.jpg.locked");
+    re_filelen = filesize(filename_locked);
+    re_byte = file_byte_read(filename_locked);
 
-    //sys_log("re byte");
-    //char_array_print(re_byte, 0, re_filelen, 0);
-
+    sys_log("re byte");
+    char_array_print(re_byte, OFFSET, re_filelen, 0);
+    printf("\n");
 
     //8단계: base64로 디코딩하기
     decoded_len = base64_decode_size(re_byte, re_filelen);
     decoded = base64_decode(re_byte, re_filelen);
 
-    sys_log("decoded");
-    char_array_print(decoded, 10000, decoded_len, 1);
+    //sys_log("decoded");
+    //char_array_print(decoded, 0, decoded_len, 1);
 
     //현재 base 64 decoding에 문제 있는듯
 
