@@ -18,7 +18,8 @@
 #include "ransomware.h"
 
 int main(){
-    decrypt_single_file("jackson.jpg.locked");
+    //encrypt_single_file("sample.docx");
+    decrypt_single_file("sample.docx.locked");
 
 
     /*
