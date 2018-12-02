@@ -119,6 +119,7 @@ int* string_to_hex(char* input, int size){
         else if(input[i] >= 'a' && input[i] < 'g')ret_val[i] = input[i] - 'a' + 10;
         else if(input[i] >= 'A' && input[i] < 'G')ret_val[i] = input[i] - 'A' + 10;
         else input[i] = 0;
+        printf("%d\n", input[i]);
     }
 
     return ret_val;
@@ -202,7 +203,7 @@ char* int_to_byte(int* record, int size){
 
             for(int j = 7; j > 0 ; j--)
                 data += pow(2.0,(7-j)) * buffer[8*i + j];
-                
+
             data *= -1;
         }
         bytearray[i] = data;
@@ -275,7 +276,7 @@ int decap_size(char* buffer){
 
 int base64_encode_size(int size){
     int ret = 0;
-    
+
     if(size % 3 == 0){
         ret = (size / 3) * 4;
     }
@@ -288,7 +289,7 @@ int base64_encode_size(int size){
 
 int base64_decode_size(char* record, int size){
     int ret = 0;
-    
+
     if(record[size - 1] == '='){
         if(record[size - 2] == '='){
             ret = ((size - 4) / 4) * 3 + 1;
@@ -343,7 +344,7 @@ char* base64_encode(char* byte_record, int size){
         encoded[temp_size + 2] = '=';
         encoded[temp_size + 3] = '=';
     }
-    
+
     if(size % 3 == 2){
         temp = 0;
         for(int i = 0; i < 6; i++){
@@ -375,7 +376,7 @@ char* base64_decode(char* record, int size){
 
     for(int i = 0; i < size - 4; i++){
         temp = base64_lookup(record[i]);
-        
+
         if(temp >= 32){
             temp_record[i * 6] = 1;
             temp -= 32;
@@ -422,7 +423,7 @@ char* base64_decode(char* record, int size){
     if(record[size - 1] == '='){
         if(record[size - 2] == '='){
             temp = base64_lookup(record[size - 4]);
-            
+
             if(temp >= 32){
                 temp_record[size - 4 * 6] = 1;
                 temp -= 32;
@@ -467,7 +468,7 @@ char* base64_decode(char* record, int size){
             temp_record[size - 4 * 6 + 5] = temp;
 
             temp = base64_lookup(record[size - 3]);
-            
+
             if(temp >= 32){
                 temp_record[size - 3 * 6] = 1;
                 temp -= 32;
@@ -488,7 +489,7 @@ char* base64_decode(char* record, int size){
         }
         else{
             temp = base64_lookup(record[size - 4]);
-            
+
             if(temp >= 32){
                 temp_record[size - 4 * 6] = 1;
                 temp -= 32;
@@ -533,7 +534,7 @@ char* base64_decode(char* record, int size){
             temp_record[size - 4 * 6 + 5] = temp;
 
             temp = base64_lookup(record[size - 3]);
-            
+
             if(temp >= 32){
                 temp_record[size - 3 * 6] = 1;
                 temp -= 32;
@@ -578,7 +579,7 @@ char* base64_decode(char* record, int size){
             temp_record[size - 3 * 6 + 5] = temp;
 
             temp = base64_lookup(record[size - 2]);
-            
+
             if(temp >= 32){
                 temp_record[size - 2 * 6] = 1;
                 temp -= 32;
@@ -616,7 +617,7 @@ char* base64_decode(char* record, int size){
     else{
         for(int i = size - 4; i < size; i++){
             temp = base64_lookup(record[i]);
-            
+
             if(temp >= 32){
                 temp_record[i * 6] = 1;
                 temp -= 32;
@@ -697,7 +698,7 @@ void char_array_print(char* record, int offset, int end, int flag){
         sys_log("캐릭터 배열 출력 실패: offset이 end보다 큼");
         return;
     }
-    
+
     if(flag == 1){
         for(int i = offset; i < end; i++){
             printf("%4d ",record[i]);
@@ -762,7 +763,7 @@ char* file_byte_read(char* filename){
     long length;
     char* buffer;
     char* encap;
- 
+
     fp = fopen(filename, "rb");
     if (fp == NULL) {
         sys_log("file open error");
@@ -779,21 +780,21 @@ char* file_byte_read(char* filename){
         sys_log("repositioning error");
         return 0;
     }
- 
+
     /* Allocate memory to contain whole file */
     buffer = (char*)malloc(length);
     if (buffer == NULL) {
         /* Handle memory allocation error */
         sys_log("memory alloc error");
     }
-     
+
     /* size assigned here in some other code */
     if (fread(buffer, 1, length, fp) < length) {
         sys_log("file open error");
         return 0;
     }
     fclose(fp);
-    
+
     return buffer;
 }
 

@@ -13,7 +13,7 @@ void encrypt_single_file(char* filename){
     char* filename_locked = char_array_init(filename_len + 7);
     strcpy(filename_locked, filename);
     strcat(filename_locked, temp);
-    
+
     puts(filename_locked);
 
     //1단계: 파일에서 바이트를 추출해내기
@@ -21,11 +21,13 @@ void encrypt_single_file(char* filename){
     char* raw_byte = NULL;
 
     //2단계: 바이트를 des에 맞는 사이즈로 바꾸기
-    int encap_len = 0;    
+    int encap_len = 0;
     char* encap = NULL;
     int* encap_bit = NULL;
 
     //3단계: des로 암호화 하기
+    int* encrypted = NULL;
+    int encrypted_len = 0;
 
     //4단계: byte에서 bit로 바꾸기
     int* encrypted_bit = NULL;
@@ -44,7 +46,6 @@ void encrypt_single_file(char* filename){
     //8단계: base64로 디코딩하기
     int decoded_len = 0;
     char* decoded = NULL;
-    
 
     //1단계: 파일에서 바이트를 추출해내기
     raw_filelen = filesize(filename);             //파일 길이 얻기
@@ -52,7 +53,7 @@ void encrypt_single_file(char* filename){
 
     //sys_log("raw");
     //char_array_print(raw_byte, 0, WINDOW, 1);
-    
+
 
     //2단계: 바이트를 des에 맞는 사이즈로 바꾸기
     encap_len = encap_size(raw_byte, raw_filelen);
@@ -62,20 +63,22 @@ void encrypt_single_file(char* filename){
     //sys_log("encap");
     //char_array_print(encap, 0, WINDOW, 1);
 
-    //sys_log("encap bit");
+    // sys_log("encap bit");
     //int_array_print(encap_bit, 0, WINDOW * 8);
 
 
     //3단계: des로 암호화 하기
-        //아직 작성되지 않음
+    encrypted_len = encap_len * 8 ;
+    encrypted = ecb_des_encrypt(encap_bit, encrypted_len);
+    sys_log("encrypted");
 
 
      //4단계: byte에서 bit로 바꾸기
     encrypted_bit = array_init(encap_len * 8);
-    array_shallow_copy(encrypted_bit, encap_bit, encap_len * 8);    //아직 des가 없어서 encap을 바로 씀
+    array_shallow_copy(encrypted_bit, encrypted, encap_len * 8);    //아직 des가 없어서 encap을 바로 씀
     encrypted_byte = int_to_byte(encrypted_bit, encap_len * 8);
 
-    //sys_log("encrypted");
+    sys_log("bytetobit");
     //char_array_print(encrypted_byte, OFFSET, encap_len, 1);
 
 
@@ -85,7 +88,7 @@ void encrypt_single_file(char* filename){
 
     //printf("before: %d\nafter: %d\n",encap_len, encoded_len);
 
-    //sys_log("encoded");
+    sys_log("encoded");
     //char_array_print(encoded, OFFSET, encoded_len, 0);
     //printf("\n");
 
@@ -138,7 +141,7 @@ void decrypt_single_file(char* filename_locked){
     int decap_len = 0;
 
     //11단계 파일로 다시 저장하기
-    
+
 
 
 
@@ -146,7 +149,7 @@ void decrypt_single_file(char* filename_locked){
         로직 파트
     */
 
-    
+
     //7단계: 파일에서 바이트만 추출하기 - 뒤에 널문자 하나 뗌
     re_filelen = filesize(filename_locked);
     re_byte = file_byte_read(filename_locked);
@@ -167,8 +170,8 @@ void decrypt_single_file(char* filename_locked){
 
 
     //10단계 복호화된 바이트의 헤더와 패딩을 제거하기
-    decap = decapsulate_des_compatable_size(decoded);               
-    decap_len = decap_size(decoded);    
+    decap = decapsulate_des_compatable_size(decoded);
+    decap_len = decap_size(decoded);
 
     //11단계 파일로 다시 저장하기
     file_byte_write(filename, decap, decap_len);
@@ -177,7 +180,7 @@ void decrypt_single_file(char* filename_locked){
     /*
         메모리 관리
     */
- 
+
     free(re_byte);
     free(decoded);
     free(decap);
