@@ -39,4 +39,8 @@ int base64_lookup(char);
 void char_array_print(char*, int, int, int);    //바이트 배열을 오프셋 부터 엔드까지 콘솔에 출력함 (배열, 오프셋, 엔드, 1이면 숫자로 출력하고 1 이외에는 캐릭터로 출력)
 void int_array_print(int*, int, int);           //비트 배열을 오프셋 부터 엔드까지 콘솔에 출력함 (배열, 오프셋, 엔드)
 
+int filesize(char*);                        //해당 파일의 바이트 단위 크기를 얻음 (파일이름)
+char* file_byte_read(char*);                //해당 파일의 바이트를 읽어옴 (파일이름)
+void file_byte_write(char*, char*, int);    //해당 파일 명으로 바이트를 써서 저장함(파일이름, 바이트 배열, 배열 크기)
+
 #endif
