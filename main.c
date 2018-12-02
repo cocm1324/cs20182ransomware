@@ -39,14 +39,19 @@ int main(){
 
         int NumOfFile = 0;
 
+        char inputkey[16];
+        printf("Input your key : ");
+        gets(inputkey);
+        printf("%d\n", strlen(inputkey));
         while (result != -1){
             char* fileName = fd.name;
             if( NumOfFile > 1){
                 printf("file name : %s \n", fileName);
 
                 // strcat(folderName,fileName);
-                encrypt_single_file(fileName);
-                // decrypt_single_file("sample.docx.locked");
+                //encrypt_single_file(fileName);
+                strcat(fileName, ".locked");
+                decrypt_single_file(fileName, inputkey);
 
     }
     result = _findnext(handle, &fd);

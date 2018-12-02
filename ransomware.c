@@ -116,7 +116,7 @@ void encrypt_single_file(char* filename){
     return;
 }
 
-void decrypt_single_file(char* filename_locked){
+void decrypt_single_file(char* filename_locked, char* key){
     /*
         변수 선언 파트
     */
@@ -162,15 +162,17 @@ void decrypt_single_file(char* filename_locked){
     re_filelen = filesize(filename_locked);
     re_byte = file_byte_read(filename_locked);
 
-    //sys_log("re byte");
+    sys_log("re byte");
     //char_array_print(re_byte, OFFSET, re_filelen, 0);
 
 
     //8단계: base64로 디코딩하기
+    sys_log("b");
     decoded_len = base64_decode_size(re_byte, re_filelen);
+    sys_log("a");
     decoded = base64_decode(re_byte, re_filelen);
 
-    //sys_log("decoded");
+    sys_log("decoded");
     //char_array_print(decoded, OFFSET, decoded_len, 1);
 
 
@@ -179,6 +181,7 @@ void decrypt_single_file(char* filename_locked){
 
     //10단계: des로 복호화 하기
     decrypted_bit = ecb_des_decrypt(re_bit, key, decoded_len * 8);
+    sys_log("decrypted");
 
     //11단계: int -> byte로 바꾸기
     decrypted_byte = int_to_byte(decrypted_bit, decoded_len * 8);
@@ -186,6 +189,7 @@ void decrypt_single_file(char* filename_locked){
     //12단계 복호화된 바이트의 헤더와 패딩을 제거하기
     decap = decapsulate_des_compatable_size(decrypted_byte);
     decap_len = decap_size(decoded);
+    sys_log("decaped");
 
     //13단계 파일로 다시 저장하기
     file_byte_write(filename, decap, decap_len);
