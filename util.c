@@ -367,8 +367,8 @@ char* base64_encode(char* byte_record, int size){
 }
 
 char* base64_decode(char* record, int size){
-    int temp_size = base64_decode_size(record, size);
-    int* temp_record = array_init(temp_size * 8);
+    int temp_size = base64_decode_size(record, size) * 8;
+    int* temp_record = array_init(temp_size);
     char* decoded = NULL;
     int temp = 0;
 
@@ -424,65 +424,62 @@ char* base64_decode(char* record, int size){
             temp = base64_lookup(record[size - 4]);
 
             if(temp >= 32){
-                temp_record[size - 4 * 6] = 1;
+                temp_record[(size - 4) * 6] = 1;
                 temp -= 32;
             }
-
             else{
-                temp_record[size - 4 * 6] = 0;
+                temp_record[(size - 4) * 6] = 0;
             }
 
             if(temp >= 16){
-                temp_record[size - 4 * 6 + 1] = 1;
+                temp_record[(size - 4) * 6 + 1] = 1;
                 temp -= 16;
             }
             else{
-                temp_record[size - 4 * 6 + 1] = 0;
+                temp_record[(size - 4) * 6 + 1] = 0;
             }
 
             if(temp >= 8){
-                temp_record[size - 4 * 6 + 2] = 1;
+                temp_record[(size - 4)* 6 + 2] = 1;
                 temp -= 8;
             }
             else{
-                temp_record[size - 4 * 6 + 2] = 0;
+                temp_record[(size - 4) * 6 + 2] = 0;
             }
 
             if(temp >= 4){
-                temp_record[size - 4 * 6 + 3] = 1;
+                temp_record[(size - 4) * 6 + 3] = 1;
                 temp -= 4;
             }
             else{
-                temp_record[size - 4 * 6 + 3] = 0;
+                temp_record[(size - 4) * 6 + 3] = 0;
             }
 
             if(temp >= 2){
-                temp_record[size - 4 * 6 + 4] = 1;
+                temp_record[(size - 4) * 6 + 4] = 1;
                 temp -= 2;
             }
             else{
-                temp_record[size - 4 * 6 + 4] = 0;
+                temp_record[(size - 4) * 6 + 4] = 0;
             }
-
-            temp_record[size - 4 * 6 + 5] = temp;
+            temp_record[(size - 4) * 6 + 5] = temp;
 
             temp = base64_lookup(record[size - 3]);
 
             if(temp >= 32){
-                temp_record[size - 3 * 6] = 1;
+                temp_record[(size - 3) * 6] = 1;
                 temp -= 32;
             }
-
             else{
-                temp_record[size - 3 * 6] = 0;
+                temp_record[(size - 3) * 6] = 0;
             }
 
             if(temp >= 16){
-                temp_record[size - 3 * 6 + 1] = 1;
+                temp_record[(size - 3) * 6 + 1] = 1;
                 temp -= 16;
             }
             else{
-                temp_record[size - 3 * 6 + 1] = 0;
+                temp_record[(size - 3) * 6 + 1] = 0;
             }
 
         }
@@ -490,126 +487,124 @@ char* base64_decode(char* record, int size){
             temp = base64_lookup(record[size - 4]);
 
             if(temp >= 32){
-                temp_record[size - 4 * 6] = 1;
+                temp_record[(size - 4)  * 6] = 1;
                 temp -= 32;
             }
-
             else{
-                temp_record[size - 4 * 6] = 0;
+                temp_record[(size - 4) * 6] = 0;
             }
 
             if(temp >= 16){
-                temp_record[size - 4 * 6 + 1] = 1;
+                temp_record[(size - 4) * 6 + 1] = 1;
                 temp -= 16;
             }
             else{
-                temp_record[size - 4 * 6 + 1] = 0;
+                temp_record[(size - 4) * 6 + 1] = 0;
             }
 
             if(temp >= 8){
-                temp_record[size - 4 * 6 + 2] = 1;
+                temp_record[(size - 4) * 6 + 2] = 1;
                 temp -= 8;
             }
             else{
-                temp_record[size - 4 * 6 + 2] = 0;
+                temp_record[(size - 4) * 6 + 2] = 0;
             }
 
             if(temp >= 4){
-                temp_record[size - 4 * 6 + 3] = 1;
+                temp_record[(size - 4) * 6 + 3] = 1;
                 temp -= 4;
             }
             else{
-                temp_record[size - 4 * 6 + 3] = 0;
+                temp_record[(size - 4) * 6 + 3] = 0;
             }
 
             if(temp >= 2){
-                temp_record[size - 4 * 6 + 4] = 1;
+                temp_record[(size - 4) * 6 + 4] = 1;
                 temp -= 2;
             }
             else{
-                temp_record[size - 4 * 6 + 4] = 0;
+                temp_record[(size - 4) * 6 + 4] = 0;
             }
+            temp_record[(size - 4) * 6 + 5] = temp;
 
-            temp_record[size - 4 * 6 + 5] = temp;
+
 
             temp = base64_lookup(record[size - 3]);
 
             if(temp >= 32){
-                temp_record[size - 3 * 6] = 1;
+                temp_record[(size - 3) * 6] = 1;
                 temp -= 32;
             }
-
             else{
-                temp_record[size - 3 * 6] = 0;
+                temp_record[(size - 3) * 6] = 0;
             }
 
             if(temp >= 16){
-                temp_record[size - 3 * 6 + 1] = 1;
+                temp_record[(size - 3) * 6 + 1] = 1;
                 temp -= 16;
             }
             else{
-                temp_record[size - 3 * 6 + 1] = 0;
+                temp_record[(size - 3) * 6 + 1] = 0;
             }
 
             if(temp >= 8){
-                temp_record[size - 3 * 6 + 2] = 1;
+                temp_record[(size - 3) * 6 + 2] = 1;
                 temp -= 8;
             }
             else{
-                temp_record[size - 3 * 6 + 2] = 0;
+                temp_record[(size - 3) * 6 + 2] = 0;
             }
 
             if(temp >= 4){
-                temp_record[size - 3 * 6 + 3] = 1;
+                temp_record[(size - 3) * 6 + 3] = 1;
                 temp -= 4;
             }
             else{
-                temp_record[size - 3 * 6 + 3] = 0;
+                temp_record[(size - 3) * 6 + 3] = 0;
             }
 
             if(temp >= 2){
-                temp_record[size - 3 * 6 + 4] = 1;
+                temp_record[(size - 3) * 6 + 4] = 1;
                 temp -= 2;
             }
             else{
-                temp_record[size - 3 * 6 + 4] = 0;
+                temp_record[(size - 3) * 6 + 4] = 0;
             }
 
-            temp_record[size - 3 * 6 + 5] = temp;
+            temp_record[(size - 3) * 6 + 5] = temp;
 
             temp = base64_lookup(record[size - 2]);
 
             if(temp >= 32){
-                temp_record[size - 2 * 6] = 1;
+                temp_record[(size - 2) * 6] = 1;
                 temp -= 32;
             }
-
             else{
-                temp_record[size - 2 * 6] = 0;
+                temp_record[(size - 2) * 6] = 0;
             }
 
             if(temp >= 16){
-                temp_record[size - 2 * 6 + 1] = 1;
+                temp_record[(size - 2) * 6 + 1] = 1;
                 temp -= 16;
             }
             else{
-                temp_record[size - 2 * 6 + 1] = 0;
+                temp_record[(size - 2) * 6 + 1] = 0;
             }
 
             if(temp >= 8){
-                temp_record[size - 2 * 6 + 2] = 1;
+                temp_record[(size - 2) * 6 + 2] = 1;
                 temp -= 8;
             }
             else{
-                temp_record[size - 2 * 6 + 2] = 0;
+                temp_record[(size - 2) * 6 + 2] = 0;
             }
 
             if(temp >= 4){
-                temp_record[size - 2 * 6 + 3] = 1;
+                temp_record[(size - 2) * 6 + 3] = 1;
                 temp -= 4;
             }
             else{
-                temp_record[size - 2 * 6 + 3] = 0;
+                temp_record[(size - 2) * 6 + 3] = 0;
             }
         }
     }
