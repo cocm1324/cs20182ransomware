@@ -95,6 +95,7 @@ void encrypt_single_file(char* filename){
 
     //6단계: 파일로 저장하기
     file_byte_write(filename_locked, encoded, encoded_len);
+    sys_log("writed");
 
     free(raw_byte);
     free(encap);

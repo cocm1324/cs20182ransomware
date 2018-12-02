@@ -23,12 +23,14 @@ int main(){
         long* handle;
         int result = 1;
         char* file;
+        char strBuffer[_MAX_PATH] = { 0, };
+	    char* fileway =  getcwd( strBuffer, _MAX_PATH );
         // char* folderName = "C:\\Users\\kwonda\\Desktop\\5-2\\jaeun\\cs20182ransomware\\sample\\";
         //
         // char* fileway = "C:\\Users\\kwonda\\Desktop\\5-2\\jaeun\\cs20182ransomware\\sample\\";
-        // strcat(fileway, "*.*");
+        strcat(fileway, "\\sample\\*.*");
 
-        handle = _findfirst("C:\\Users\\kwonda\\Desktop\\5-2\\jaeun\\cs20182ransomware\\sample\\*.*", &fd); // Set path
+        handle = _findfirst(fileway, &fd); // Set path
         // handle = _findfirst("C:\\Users\\kwonda\\Desktop\\18_2\\*.*", &fd); // path 예시
         if (handle == -1){
             printf("There were no files.\n");

